@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Settings, defaultSeats } from './src/game/settings';
-import { MenuScreen } from './src/components/MenuScreen';
-import { EditorScreen } from './src/components/EditorScreen';
-import { GameScreen } from './src/components/GameScreen';
+import { Settings, defaultSeats } from './game/settings';
+import { MenuScreen } from './components/MenuScreen';
+import { EditorScreen } from './components/EditorScreen';
+import { GameScreen } from './components/GameScreen';
 
 type Screen = 'menu' | 'editor' | 'game';
 
