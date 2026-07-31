@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Settings, defaultSeats } from './src/game/settings';
+import { Settings, defaultSeats } from './game/settings';
 import { MenuScreen } from './components/MenuScreen';
 import { EditorScreen } from './components/EditorScreen';
 import { GameScreen } from './components/GameScreen';
