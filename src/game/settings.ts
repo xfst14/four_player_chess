@@ -1,8 +1,11 @@
 // src/game/settings.ts
 
+export type BotDifficulty = 'easy' | 'normal';
+
 export interface Seat {
   name: string;
-  type: 'human' | 'bot';
+  kind: 'human' | 'bot';
+  difficulty: BotDifficulty;
 }
 
 export interface Settings {
@@ -10,16 +13,19 @@ export interface Settings {
   timeSec: number | null;
   commandeer: boolean;
   kingHunt: boolean;
-  setup: any | null;
+  setup: ArmySetup | null;
+}
+
+export function presetSeats(humans: number): Seat[] {
+  return ['Red', 'Blue', 'Amber', 'Green'].map((name, i) => ({
+    name: i < humans ? `Player ${name}` : `Bot ${name[0]}`,
+    kind: i < humans ? 'human' : 'bot',
+    difficulty: 'easy',
+  }));
 }
 
 export function defaultSeats(): Seat[] {
-  return [
-    { name: 'Red', type: 'human' },
-    { name: 'Blue', type: 'human' },
-    { name: 'Amber', type: 'human' },
-    { name: 'Green', type: 'human' },
-  ];
+  return presetSeats(4);
 }
 
 export const PLAYERS = [
@@ -48,7 +54,7 @@ export const SIZE = 14;
 
 export function totalSeats(seats: Seat[]) {
   return {
-    humans: seats.filter(s => s.type === 'human').length,
-    bots: seats.filter(s => s.type === 'bot').length,
+    humans: seats.filter(s => s.kind === 'human').length,
+    bots: seats.filter(s => s.kind === 'bot').length,
   };
 }
