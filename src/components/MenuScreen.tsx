@@ -229,23 +229,30 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
             <motion.div {...FADE(3)}>
               <Card title="House rules" icon={<Crown className="h-4 w-4" />}>
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-200">Claim defeated armies</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                        Team wiped → <span className="text-slate-300">you seize their remaining pieces</span> (kings are always removed). Off → survivors freeze as obstacles.
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-200">
+                        Claim defeated armies
+                      </p>
+                      <p className="mt-0.5 break-words text-xs leading-relaxed text-slate-500">
+                        Team wiped → <span className="text-slate-300">you seize their remaining pieces</span> 
+                        {' '}(kings are always removed). Off → survivors freeze as obstacles.
                       </p>
                     </div>
-                    <Toggle on={settings.commandeer} onClick={() => setSettings({ ...settings, commandeer: !settings.commandeer })} />
+
+                    <Toggle on={settings.commandeer} onClick={() => setSettings({ ...settings, commandeer: !settings.commandeer })}/>
                   </div>
                   <div className="h-px bg-white/[0.06]" />
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-200">King hunt</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                  <div className="flex items-start gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-200">
+                        King hunt
+                      </p>
+                      <p className="mt-0.5 break-words text-xs leading-relaxed text-slate-500">
                         Kings can be <span className="text-slate-300">captured outright</span> — any capture eliminates that whole team, even if they had 5 kings.
                       </p>
                     </div>
+
                     <Toggle on={settings.kingHunt} onClick={() => setSettings({ ...settings, kingHunt: !settings.kingHunt })} />
                   </div>
                 </div>

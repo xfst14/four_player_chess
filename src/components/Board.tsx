@@ -133,9 +133,10 @@ export const GameBoard = React.memo(function GameBoard({
 
   return (
     <div
-      className="relative select-none"
+      className="relative mx-auto select-none touch-manipulation"
       style={{
         width: size ?? 'min(92vmin, 780px)',
+        maxWidth: 'min(100%, calc(100vw - 32px))',
         aspectRatio: '1 / 1',
         boxShadow: '0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05)',
         borderRadius: '6px',
