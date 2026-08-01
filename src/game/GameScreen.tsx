@@ -6,7 +6,7 @@ import {
 import {
   Board, Move, PieceType, SIZE, Vec, allLegalMoves, applyMoveClone, cloneBoard,
   findKings, isAttacked, isPromoMove, moveNotation, playerCondition, PlayerCondition,
-  standardSetup,
+  standardSetup, PIECE_POINTS, CHECK_POINTS, playerCheckedBy,
 } from '../game/engine';
 import { BotDifficulty, chooseBotMove } from '../game/bot';
 import { Settings } from '../game/settings';
@@ -28,6 +28,7 @@ interface RPlayer {
   timeLeft: number | null;
   captured: CapturedEntry[];
   outReason?: string;
+  score: number;
 }
 
 interface LogEntry { text: string; color: number; event?: boolean }
@@ -44,6 +45,7 @@ interface GState {
   kingHunt: boolean;
   commandeer: boolean;
   moveCount: number;
+  winCondition: 'classic' | 'points';
 }
 
 type Action =
@@ -104,20 +106,50 @@ function processFallen(gs: GState, eliminator: number | null) {
   }
 }
 
+function pointsWinner(gs: GState): number {
+  const scores = gs.players.map(p => p.score);
+  const best = Math.max(...scores);
+  const leaders = scores
+    .map((s, i) => (s === best ? i : -1))
+    .filter(i => i >= 0);
+
+  if (leaders.length === 1) return leaders[0];
+
+  // Tie-breaker: if one of the tied players is still alive, prefer that player.
+  const aliveLeaders = leaders.filter(i => gs.players[i].status === 'active');
+  if (aliveLeaders.length === 1) return aliveLeaders[0];
+
+  // Final deterministic fallback: first tied player by seat order.
+  return leaders[0];
+}
+
 function finishIfOver(gs: GState): boolean {
-  const aliveIdx = gs.players.map((p, i) => (p.status === 'active' ? i : -1)).filter(i => i >= 0);
+  const aliveIdx = gs.players
+    .map((p, i) => (p.status === 'active' ? i : -1))
+    .filter(i => i >= 0);
+
   if (aliveIdx.length <= 1) {
-    gs.winner = aliveIdx.length === 1 ? aliveIdx[0] : null;
-    gs.winReason = gs.winner !== null
-      ? 'Every rival crown has fallen — the last empire stands.'
-      : 'No kings remain on the board.';
+    if (gs.winCondition === 'points') {
+      gs.winner = pointsWinner(gs);
+      gs.winReason = `${gs.players[gs.winner].name} wins by points with ${gs.players[gs.winner].score} points.`;
+    } else {
+      gs.winner = aliveIdx.length === 1 ? aliveIdx[0] : null;
+      gs.winReason = gs.winner !== null
+        ? 'Every rival crown has fallen — the last empire stands.'
+        : 'No kings remain on the board.';
+    }
+
     gs.log.push({
-      text: gs.winner !== null ? `${gs.players[gs.winner].name} triumphs and takes the arena!` : 'Mutual destruction — no victor.',
+      text: gs.winner !== null
+        ? `${gs.players[gs.winner].name} triumphs!`
+        : 'Mutual destruction — no victor.',
       color: gs.winner ?? 0,
       event: true,
     });
+
     return true;
   }
+
   return false;
 }
 
@@ -130,12 +162,22 @@ function reducer(gs: GState, action: Action): GState {
       ...gs, players: clonePlayers(gs.players), log: [...gs.log],
       version: gs.version + 1, moveCount: gs.moveCount + 1,
     };
-    const res = applyMoveClone(gs.board, action.move);
-    next.board = res.board;
-    if (res.captured) next.players[mover].captured.push({ type: res.captured.type, owner: res.captured.owner });
-    next.lastMove = action.move;
+    const aliveBefore = aliveArr(gs.players);
 
-    const logIdx = next.log.length;
+const res = applyMoveClone(gs.board, action.move);
+next.board = res.board;
+
+if (res.captured) {
+  next.players[mover].captured.push({
+    type: res.captured.type,
+    owner: res.captured.owner,
+  });
+
+  next.players[mover].score += PIECE_POINTS[res.captured.type];
+}
+
+next.lastMove = action.move;
+const logIdx = next.log.length;
 
     // MULTI-KING RULE: capturing ANY king eliminates its entire team immediately
     if (res.captured && res.captured.type === 'k') {
@@ -145,13 +187,37 @@ function reducer(gs: GState, action: Action): GState {
       }
     }
 
+    // Award +3 for newly checking an enemy player.
+    // This gives +3 once per enemy team newly checked by this move.
+    let checksGiven = 0;
+    const aliveAfterCapture = aliveArr(next.players);
+
+    for (let o = 0; o < 4; o++) {
+      if (o === mover || !aliveAfterCapture[o]) continue;
+
+      const wasChecking = playerCheckedBy(gs.board, o, mover, aliveBefore);
+      const nowChecking = playerCheckedBy(next.board, o, mover, aliveAfterCapture);
+
+      if (!wasChecking && nowChecking) checksGiven++;
+    }
+
+    if (checksGiven > 0) {
+      next.players[mover].score += CHECK_POINTS * checksGiven;
+    }
+
     processFallen(next, mover);
 
     const alive = aliveArr(next.players);
     let suffix = '';
-    for (let o = 0; o < 4; o++) {
-      if (o !== mover && alive[o] && playerCondition(next.board, o, next.kingHunt, alive) === 'check') { suffix = '+'; break; }
+    for (let p = 0; p < 4; p++) {
+      if (p !== mover && alive[p]) {
+        // Assuming playerCondition returns 'check' if any king is attacked
+        const cond = playerCondition(next.board, p, next.kingHunt, alive);
+        if (cond === 'check') {
+        next.players[mover].score += 3;
+      }
     }
+}
     next.log.splice(logIdx, 0, { text: moveNotation(action.move, res.promoted, suffix), color: mover });
 
     if (!finishIfOver(next)) next.turn = nextTurnFrom(next.players, mover);
@@ -201,6 +267,7 @@ function initGame(settings: Settings): GState {
     status: 'active' as const,
     timeLeft: settings.timeSec,
     captured: [],
+    score: 0,
   }));
 
   const gs: GState = {
@@ -215,6 +282,7 @@ function initGame(settings: Settings): GState {
     kingHunt: settings.kingHunt,
     commandeer: settings.commandeer,
     moveCount: 0,
+    winCondition: settings.winCondition,
   };
   // guard against 0-king custom setups
   processFallen(gs, null);
@@ -391,7 +459,9 @@ export function GameScreen({ settings, onRestart, onExit }: Props) {
             const out = p.status === 'out';
             const lowTime = p.timeLeft !== null && p.timeLeft <= 20 && !out;
             const kingCount = findKings(gsRef.current.board, i).length;
-            const matPts = Math.round(p.captured.reduce((s, e) => s + ({ p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }[e.type] as number), 0));
+            // const matPts = Math.round(p.captured.reduce((s, e) => s + ({ p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }[e.type] as number), 0));
+            const matPts = p.score;
+            {matPts > 0 && <span className="font-mono text-[10px] font-bold text-emerald-400/90">+{matPts}</span>}
             return (
               <div
                 key={i}
@@ -446,7 +516,9 @@ export function GameScreen({ settings, onRestart, onExit }: Props) {
                         ))}
                       </span>
                       {p.captured.length > 10 && <span className="text-[10px] text-slate-500">+{p.captured.length - 10}</span>}
-                      {matPts > 0 && <span className="font-mono text-[10px] font-bold text-emerald-400/90">+{matPts}</span>}
+                      <span className="font-mono text-[10px] font-bold text-emerald-400/90">
+                        {p.points} pts
+                      </span>
                     </span>
                   )}
                 </div>
