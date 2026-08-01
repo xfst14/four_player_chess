@@ -2,6 +2,17 @@
 
 import type { Board } from './engine';
 
+export const PIECE_POINTS: Record<PieceType, number> = {
+  pawn: 1,
+  knight: 2,
+  bishop: 3,
+  rook: 3,
+  queen: 5,
+  king: 9,
+};
+
+export const CHECK_BONUS = 3;
+
 export interface ArmySetup {
   board: Board;
   nextId: number;
