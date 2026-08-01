@@ -1,5 +1,12 @@
 // src/game/settings.ts
 
+import type { Board } from './engine';
+
+export interface ArmySetup {
+  board: Board;
+  nextId: number;
+}
+
 export type BotDifficulty = 'easy' | 'normal';
 
 export interface Seat {
