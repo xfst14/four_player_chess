@@ -21,6 +21,7 @@ export interface Settings {
   commandeer: boolean;
   kingHunt: boolean;
   setup: ArmySetup | null;
+  winCondition: 'classic' | 'points';
 }
 
 export function presetSeats(humans: number): Seat[] {
