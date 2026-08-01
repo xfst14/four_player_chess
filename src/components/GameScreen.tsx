@@ -369,8 +369,8 @@ export function GameScreen({ settings, onRestart, onExit }: Props) {
   const anyBots = gs.players.some(p => p.kind === 'bot');
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-[#07080c] text-slate-200 lg:h-screen lg:flex-row">
-      <aside className="order-2 w-full shrink-0 border-t border-white/[0.06] bg-[#0a0c11] lg:order-1 lg:h-full lg:w-[352px] lg:overflow-y-auto lg:border-r lg:border-t-0">
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden ... lg:h-screen lg:overflow-hidden lg:flex-row">
+        <aside className="order-2 w-full shrink-0 ... lg:order-1 lg:h-full lg:w-[352px] lg:overflow-y-auto ...">
         <div className="flex items-center gap-2.5 border-b border-white/[0.06] px-5 py-4">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-200 to-amber-500 text-[#241A06]">
             <Crown className="h-4.5 w-4.5" style={{ width: 18, height: 18 }} />
