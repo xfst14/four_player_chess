@@ -238,7 +238,17 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
                         Team wiped → <span className="text-slate-300">you seize their remaining pieces</span> 
                         {' '}(kings are always removed). Off → survivors freeze as obstacles.
                       </p>
-                    </div>
+                    </div>                   
+
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-200">Points Mode</p>
+                    <p className="mt-0.5 break-words text-xs leading-relaxed text-slate-500">
+                      Winner is determined by points: P(1), N(2), B(3), R(3), Q(5), K(9), Check(+3).
+                    </p>
+                  </div>
+                  <Toggle on={settings.winCondition === 'points'} onClick={() => setSettings({ ...settings, winCondition: settings.winCondition === 'points' ? 'classic' : 'points' })} />
+                </div>
 
                     <Toggle on={settings.commandeer} onClick={() => setSettings({ ...settings, commandeer: !settings.commandeer })}/>
                   </div>
