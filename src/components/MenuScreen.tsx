@@ -110,7 +110,7 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
           </p>
         </motion.header>
 
-        <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
           <motion.div {...FADE(1)}>
             <Card title="Players — 5 modes + custom" icon={<Swords className="h-4 w-4" />}>
               <div className="mb-4 flex flex-wrap gap-2">
