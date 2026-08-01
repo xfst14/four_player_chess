@@ -89,7 +89,7 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
   }, [settings.setup]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#07080c] text-slate-200">
+    <div className="relative min-h-screen overflow-x-hidden overflow-y-auto bg-[#07080c] text-slate-200">
       <img src="/images/hero.jpg" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-45" />
       <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(7,8,12,0.55) 0%, rgba(7,8,12,0.82) 45%, rgba(7,8,12,0.97) 100%)' }} />
       <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(80% 60% at 50% 0%, rgba(232,196,104,0.10), transparent 60%)' }} />
