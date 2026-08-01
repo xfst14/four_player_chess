@@ -16,6 +16,7 @@ export default function App() {
     commandeer: true,
     kingHunt: false,
     setup: null,
+    winCondition: 'classic',
   });
 
   return (
