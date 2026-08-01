@@ -5,6 +5,15 @@ const CORNER = 3;
 export type PieceType = 'k' | 'q' | 'r' | 'b' | 'n' | 'p';
 export type PlayerCondition = 'ok' | 'check' | 'mate' | 'stalemate' | 'dead';
 
+export const PIECE_POINTS: Record<PieceType, number> = {
+  p: 1, // Pawn
+  n: 2, // Knight
+  b: 3, // Bishop
+  r: 3, // Rook
+  q: 5, // Queen
+  k: 9  // King
+};
+
 export interface Vec {
   r: number;
   c: number;
