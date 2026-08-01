@@ -173,12 +173,14 @@ export function TurnRing({ turn, winner }: { turn: number; winner: number | null
       />
     );
   };
+  const offset = -8;
+
   return (
     <>
-      {strip(2, { left: '3%', right: '3%', top: -13, height: 5 })}    {/* Amber — top */}
-      {strip(0, { left: '3%', right: '3%', bottom: -13, height: 5 })} {/* Red — bottom */}
-      {strip(1, { top: '3%', bottom: '3%', left: -13, width: 5 })}    {/* Blue — left */}
-      {strip(3, { top: '3%', bottom: '3%', right: -13, width: 5 })}   {/* Green — right */}
+      {strip(2, { left: '3%', right: '3%', top: offset, height: 5 })}
+      {strip(0, { left: '3%', right: '3%', bottom: offset, height: 5 })}
+      {strip(1, { top: '3%', bottom: '3%', left: offset, width: 5 })}
+      {strip(3, { top: '3%', bottom: '3%', right: offset, width: 5 })}
     </>
   );
 }

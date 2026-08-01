@@ -89,12 +89,12 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
   }, [settings.setup]);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden overflow-y-auto bg-[#07080c] text-slate-200">
+      <div className="relative min-h-screen overflow-x-hidden overflow-y-auto bg-[#07080c] text-slate-200">
       <img src="/images/hero.jpg" alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-45" />
       <div className="pointer-events-none absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(7,8,12,0.55) 0%, rgba(7,8,12,0.82) 45%, rgba(7,8,12,0.97) 100%)' }} />
       <div className="pointer-events-none absolute inset-0" style={{ background: 'radial-gradient(80% 60% at 50% 0%, rgba(232,196,104,0.10), transparent 60%)' }} />
 
-      <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-10 sm:px-8">
+      <div className="relative mx-auto w-full max-w-6xl px-3 pb-16 pt-8 sm:px-8 sm:pt-10">
         <motion.header {...FADE(0)} className="mb-10 text-center">
           <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-300/[0.07] px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.3em] text-amber-200/90">
             <Crown className="h-3.5 w-3.5" />
@@ -110,7 +110,7 @@ export function MenuScreen({ settings, setSettings, onStart, onOpenEditor }: Pro
           </p>
         </motion.header>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)]">
           <motion.div {...FADE(1)}>
             <Card title="Players — 5 modes + custom" icon={<Swords className="h-4 w-4" />}>
               <div className="mb-4 flex flex-wrap gap-2">
