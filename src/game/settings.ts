@@ -1,5 +1,3 @@
-// src/game/settings.ts
-
 import type { Board } from './engine';
 
 export interface ArmySetup {
@@ -65,4 +63,44 @@ export function totalSeats(seats: Seat[]) {
     humans: seats.filter(s => s.kind === 'human').length,
     bots: seats.filter(s => s.kind === 'bot').length,
   };
+}
+
+// src/game/settings.ts
+
+export interface ScoringSettings {
+  enabled: boolean;
+  pawn: number;
+  knight: number;
+  bishop: number;
+  rook: number;
+  queen: number;
+  king: number;
+  checkBonus: number;
+}
+
+export const DEFAULT_SCORING: ScoringSettings = {
+  enabled: false, // off by default so it doesn't break classic mode
+  pawn: 1,
+  knight: 2,
+  bishop: 3,
+  rook: 3,
+  queen: 5,
+  king: 9,
+  checkBonus: 3,
+};
+
+// New Game Mode enum
+export const GameMode = {
+  CLASSIC: "classic",
+  POINTS: "points",
+} as const;
+
+export type GameMode = typeof GameMode[keyof typeof GameMode];
+// resolves to "classic" | "points"
+
+export interface GameSettings {
+  mode: GameMode;
+  scoring: ScoringSettings;
+  pointsTargetScore?: number; // optional: end game early at X points
+  // ...existing settings (board size, timers, etc.)
 }
