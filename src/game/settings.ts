@@ -78,17 +78,6 @@ export interface ScoringSettings {
   checkBonus: number;
 }
 
-export const DEFAULT_SCORING: ScoringSettings = {
-  enabled: false, // off by default so it doesn't break classic mode
-  pawn: 1,
-  knight: 2,
-  bishop: 3,
-  rook: 3,
-  queen: 5,
-  king: 9,
-  checkBonus: 3,
-};
-
 // New Game Mode enum
 export const GameMode = {
   CLASSIC: "classic",
@@ -100,7 +89,13 @@ export type GameMode = typeof GameMode[keyof typeof GameMode];
 
 export interface GameSettings {
   mode: GameMode;
-  scoring: ScoringSettings;
-  pointsTargetScore?: number; // optional: end game early at X points
-  // ...existing settings (board size, timers, etc.)
+  pointsConfig: {
+    check: number;
+    capturePawn: number;
+    captureKnight: number;
+    captureBishop: number;
+    captureRook: number;
+    captureQueen: number;
+  };
+  pointsToWin: number;
 }
