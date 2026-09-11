@@ -1,186 +1,123 @@
-import React from 'react';
-import { Board, Move, Vec, isValidSquare, SIZE } from '../game/engine';
-import { PieceIcon } from './PieceIcon';
-import { PLAYERS } from '../game/theme';
+import { useMemo } from 'react';
+import { isValidSquare, SIZE, type Board as BoardT, type Move, type Vec } from '../game/engine';
+import { PLAYERS, DEAD_COLORS } from '../game/theme';
+import { TEAM_INFO } from '../game/settings';
+import PieceIcon from './PieceIcon';
 
-interface BoardProps {
-  board: Board;
+interface Props {
+  board: BoardT;
   alive: boolean[];
+  teams: number[];
+  teamMode: boolean;
+  turn: number;
   selected: Vec | null;
-  targets: Move[] | null;
-  lastMove: Move | null;
-  checkSquares: Vec[];
+  legal: Move[];
+  lastMove: { from: Vec; to: Vec } | null;
+  checkedKings: Vec[];
   interactive: boolean;
-  size?: string;
-  onSquare: (r: number, c: number) => void;
-  onSquareRight?: (r: number, c: number) => void;
+  onSquare: (sq: Vec) => void;
 }
 
-const FILES = 'abcdefghijklmn';
+const LIGHT = '#41506b';
+const DARK = '#334159';
 
-export const GameBoard = React.memo(function GameBoard({
-  board, alive, selected, targets, lastMove, checkSquares, interactive, size, onSquare, onSquareRight,
-}: BoardProps) {
-  const cell = 100 / SIZE;
+export default function Board({
+  board,
+  alive,
+  teams,
+  teamMode,
+  turn,
+  selected,
+  legal,
+  lastMove,
+  checkedKings,
+  interactive,
+  onSquare,
+}: Props) {
+  const legalMap = useMemo(() => {
+    const m = new Map<string, Move>();
+    for (const mv of legal) m.set(`${mv.to.r}-${mv.to.c}`, mv);
+    return m;
+  }, [legal]);
 
-  const targetAt = (r: number, c: number) => targets?.find(m => m.to.r === r && m.to.c === c);
-  const isLast = (r: number, c: number) =>
-    lastMove && ((lastMove.from.r === r && lastMove.from.c === c) || (lastMove.to.r === r && lastMove.to.c === c));
-  const isCheck = (r: number, c: number) => checkSquares.some(s => s.r === r && s.c === c);
-  const isSel = (r: number, c: number) => selected && selected.r === r && selected.c === c;
-
-  const cells: React.ReactNode[] = [];
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const key = `${r}-${c}`;
-      if (!isValidSquare(r, c)) {
-        cells.push(<div key={key} className="invisible" />);
-        continue;
-      }
-      const light = (r + c) % 2 === 0;
-      const t = targetAt(r, c);
-      const capture = t && t.capturedId !== undefined;
-      const showFile = !isValidSquare(r + 1, c);
-      const showRank = !isValidSquare(r, c - 1);
-
-      cells.push(
-        <div
-          key={key}
-          onClick={() => onSquare(r, c)}
-          onContextMenu={e => { e.preventDefault(); onSquareRight?.(r, c); }}
-          className={`relative ${interactive ? 'cursor-pointer' : ''} transition-[filter] duration-150 ${interactive ? 'hover:brightness-125' : ''}`}
-          style={{
-            background: light
-              ? 'linear-gradient(135deg,#525c72 0%,#475064 60%,#414a5e 100%)'
-              : 'linear-gradient(135deg,#272c39 0%,#222736 60%,#1e2330 100%)',
-            boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.28)',
-          }}
-        >
-          {/* coordinates */}
-          {showRank && (
-            <span className={`absolute left-[6%] top-[2%] text-[clamp(6px,1vmin,10px)] font-semibold ${light ? 'text-slate-800/50' : 'text-slate-400/40'}`}>
-              {SIZE - r}
-            </span>
-          )}
-          {showFile && (
-            <span className={`absolute bottom-[1%] right-[6%] text-[clamp(6px,1vmin,10px)] font-semibold uppercase ${light ? 'text-slate-800/50' : 'text-slate-400/40'}`}>
-              {FILES[c]}
-            </span>
-          )}
-
-          {/* last move */}
-          {isLast(r, c) && <div className="absolute inset-0" style={{ background: 'rgba(232,196,104,0.20)' }} />}
-
-          {/* selected */}
-          {isSel(r, c) && (
-            <div className="absolute inset-0" style={{ boxShadow: 'inset 0 0 0 3px rgba(232,196,104,0.95), inset 0 0 14px rgba(232,196,104,0.45)', background: 'rgba(232,196,104,0.12)' }} />
-          )}
-
-          {/* check pulse */}
-          {isCheck(r, c) && (
-            <div className="absolute inset-0 check-pulse" style={{ background: 'radial-gradient(circle, rgba(255,60,60,0.55) 0%, rgba(255,60,60,0.12) 62%, transparent 75%)' }} />
-          )}
-
-          {/* move targets */}
-          {t && !capture && (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
-              style={{ width: '30%', height: '30%', background: 'radial-gradient(circle, rgba(232,196,104,0.9), rgba(232,196,104,0.55))', boxShadow: '0 0 8px rgba(232,196,104,0.8)' }} />
-          )}
-          {capture && (
-            <div className="absolute rounded-full"
-              style={{ inset: '5%', border: '3px solid rgba(255,120,110,0.95)', background: 'rgba(255,80,70,0.14)', boxShadow: '0 0 12px rgba(255,80,70,0.55), inset 0 0 10px rgba(255,80,70,0.35)' }} />
-          )}
-        </div>
-      );
-    }
-  }
-
-  const pieces: React.ReactNode[] = [];
-  for (let r = 0; r < SIZE; r++) {
-    for (let c = 0; c < SIZE; c++) {
-      const p = board[r][c];
-      if (!p) continue;
-      const dead = !alive[p.owner];
-      const sel = isSel(r, c);
-      pieces.push(
-        <div
-          key={p.id}
-          className="absolute left-0 top-0"
-          style={{
-            width: `${cell}%`,
-            height: `${cell}%`,
-            transform: `translate(${c * 100}%, ${r * 100}%)`,
-            transition: 'transform 260ms cubic-bezier(.25,.9,.3,1.15)',
-            zIndex: sel ? 30 : 20,
-            pointerEvents: 'none',
-          }}
-        >
-          <div
-            className="h-full w-full"
-            style={{
-              padding: '4%',
-              transform: sel ? 'translateY(-5%) scale(1.1)' : 'none',
-              transition: 'transform 180ms ease',
-              filter: dead ? 'saturate(0) opacity(0.5)' : `drop-shadow(0 ${sel ? 6 : 3}px 3px rgba(0,0,0,0.55))`,
-            }}
-          >
-            <PieceIcon type={p.type} colorIdx={dead ? -1 : p.owner} className="h-full w-full" />
-          </div>
-        </div>
-      );
-    }
-  }
+  const checkSet = useMemo(
+    () => new Set(checkedKings.map(k => `${k.r}-${k.c}`)),
+    [checkedKings],
+  );
 
   return (
     <div
-      className="relative mx-auto select-none touch-manipulation"
+      className="relative w-full select-none rounded-2xl p-[6px] shadow-[0_28px_70px_-20px_rgba(0,0,0,.85)]"
       style={{
-        width: size ?? 'min(92vmin, 780px)',
-        maxWidth: 'min(100%, calc(100vw - 32px))',
-        aspectRatio: '1 / 1',
-        boxShadow: '0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.05)',
-        borderRadius: '6px',
-        background: '#12151d',
+        background: 'linear-gradient(160deg,#1a2233,#111726 55%,#0c111c)',
+        border: '1px solid rgba(148,163,184,.18)',
       }}
     >
       <div
-        className="absolute inset-0 grid overflow-hidden"
-        style={{ gridTemplateColumns: `repeat(${SIZE}, 1fr)`, gridTemplateRows: `repeat(${SIZE}, 1fr)`, borderRadius: '6px' }}
+        className="grid aspect-square w-full overflow-hidden rounded-xl"
+        style={{ gridTemplateColumns: `repeat(${SIZE}, minmax(0,1fr))` }}
       >
-        {cells}
+        {Array.from({ length: SIZE * SIZE }, (_, idx) => {
+          const r = Math.floor(idx / SIZE);
+          const c = idx % SIZE;
+          const key = `${r}-${c}`;
+          if (!isValidSquare(r, c)) return <div key={key} className="aspect-square" />;
+
+          const piece = board[r][c];
+          const isSel = selected?.r === r && selected?.c === c;
+          const target = legalMap.get(key);
+          const isLast = lastMove && ((lastMove.from.r === r && lastMove.from.c === c) || (lastMove.to.r === r && lastMove.to.c === c));
+          const inCheck = checkSet.has(key);
+          const base = (r + c) % 2 === 0 ? LIGHT : DARK;
+          const ownerColors = piece ? (alive[piece.owner] ? PLAYERS[piece.owner] : DEAD_COLORS) : null;
+          const teamColor = piece && teamMode && alive[piece.owner] ? TEAM_INFO[teams[piece.owner]]?.color : null;
+          const isMine = piece && piece.owner === turn && alive[piece.owner];
+
+          return (
+            <button
+              key={key}
+              onClick={() => onSquare({ r, c })}
+              disabled={!interactive}
+              className="group relative aspect-square"
+              style={{ background: base }}
+            >
+              {isLast && <div className="absolute inset-0 bg-amber-300/20" />}
+              {inCheck && (
+                <div
+                  className="absolute inset-0"
+                  style={{ background: 'radial-gradient(circle, rgba(239,68,68,.75) 0%, rgba(239,68,68,0) 72%)' }}
+                />
+              )}
+              {isSel && <div className="absolute inset-0 ring-2 ring-inset ring-white/80" />}
+
+              {teamColor && (
+                <div
+                  className="absolute inset-x-0 bottom-0 h-[3px]"
+                  style={{ background: teamColor, opacity: 0.85 }}
+                />
+              )}
+
+              {piece && ownerColors && (
+                <span className="absolute inset-[4%]">
+                  <PieceIcon type={piece.type} color={ownerColors.main} dim={!alive[piece.owner]} />
+                </span>
+              )}
+
+              {target && !piece && (
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="h-[26%] w-[26%] rounded-full bg-white/55 shadow" />
+                </span>
+              )}
+              {target && piece && (
+                <span className="absolute inset-[6%] rounded-full ring-[3px] ring-rose-300/85" />
+              )}
+              {isMine && interactive && !isSel && (
+                <span className="absolute inset-0 opacity-0 transition group-hover:opacity-100" style={{ background: 'rgba(255,255,255,.12)' }} />
+              )}
+            </button>
+          );
+        })}
       </div>
-      <div className="absolute inset-0" style={{ pointerEvents: 'none' }}>{pieces}</div>
     </div>
-  );
-});
-
-/** Four glowing arena strips marking each army's side; active side is lit. */
-export function TurnRing({ turn, winner }: { turn: number; winner: number | null }) {
-  const strip = (i: number, style: React.CSSProperties) => {
-    const active = winner === null && turn === i;
-    const win = winner !== null && winner === i;
-    const col = PLAYERS[i].main;
-    return (
-      <div
-        style={{
-          position: 'absolute', ...style,
-          background: col,
-          opacity: active || win ? 1 : 0.18,
-          boxShadow: active || win ? `0 0 18px ${col}, 0 0 40px ${col}` : 'none',
-          transition: 'opacity 300ms, box-shadow 300ms',
-          borderRadius: 999,
-        }}
-      />
-    );
-  };
-  const offset = -8;
-
-  return (
-    <>
-      {strip(2, { left: '3%', right: '3%', top: offset, height: 5 })}
-      {strip(0, { left: '3%', right: '3%', bottom: offset, height: 5 })}
-      {strip(1, { top: '3%', bottom: '3%', left: offset, width: 5 })}
-      {strip(3, { top: '3%', bottom: '3%', right: offset, width: 5 })}
-    </>
   );
 }

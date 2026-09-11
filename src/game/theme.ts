@@ -10,5 +10,17 @@ export const DEAD_COLORS = {
   main: '#64748b',
   mid: '#475569',
   deep: '#334155',
-  light: '#cbd5e1'
+  light: '#cbd5e1',
 };
+
+export function playerColors(owner: number, alive: boolean) {
+  return alive ? PLAYERS[owner] : { ...DEAD_COLORS, name: PLAYERS[owner].name };
+}
+
+export function fmtClock(sec: number | null): string {
+  if (sec === null) return '--:--';
+  const s = Math.max(0, Math.ceil(sec));
+  const m = Math.floor(s / 60);
+  const rest = s % 60;
+  return `${m}:${rest.toString().padStart(2, '0')}`;
+}
