@@ -43,6 +43,8 @@ Players (or bots) take turns in clockwise order. The last surviving player wins.
 - **Piece movement**: Standard chess rules, adapted to the larger board and four directions.
   - Pawns move/capture forward relative to their facing direction (toward the center/opposite side) and can double-step from their starting rank.
 - **Check / Checkmate / Stalemate**: A player is eliminated on checkmate or stalemate (or when they have no kings left). Checks are detected against *any* of a player’s kings.
+- **Team Mode**: Split in two teams - ALPHA and OMEGA. Choose your teammates, fight each other until your team wins!
+- **Points Increment Mode**: Gains more points by capturing opponent pieces, checking and checkmating kings. Outscore your opponents and win the game!
 - **Elimination**: 
   - Capture of any king → immediate team wipe.
   - Checkmate / stalemate / no kings / flag fall → team wipe.
